@@ -39,25 +39,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
-      - name: Login to DockerHub
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-        with:
-          username: cruizba
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to Quay.io
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
 
       - name: Build standalone image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
@@ -69,16 +56,16 @@ jobs:
           build-args: |
             UBUNTU_VERSION=${{ matrix.ubuntu_version }}
           tags: |
-            cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-test
+            otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-test
 
       - name: Test standalone image (privileged mode)
         run: |
           chmod +x test.sh
-          ./test.sh --mode privileged --use-systemd false --image-name cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-test
+          ./test.sh --mode privileged --use-systemd false --image-name ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-test
 
       - name: Test standalone image (sysbox-runc mode)
         run: |
-          ./test.sh --mode sysbox-runc --use-systemd false --image-name cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-test
+          ./test.sh --mode sysbox-runc --use-systemd false --image-name ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-test
 
       - name: Build and push standalone image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
@@ -89,57 +76,41 @@ jobs:
           build-args: |
             UBUNTU_VERSION=${{ matrix.ubuntu_version }}
           tags: |
-            cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-${{ env.CURRENT_VERSION }}
-            cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-${{ env.CURRENT_VERSION }}-r${{ env.BUILD_NUMBER }}
-            cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-latest
-            ${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && 'cruizba/ubuntu-dind:latest' || '' }}
-            ghcr.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-${{ env.CURRENT_VERSION }}
-            ghcr.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-${{ env.CURRENT_VERSION }}-r${{ env.BUILD_NUMBER }}
-            ghcr.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-latest
-            ${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && 'ghcr.io/cruizba/ubuntu-dind:latest' || '' }}
-            quay.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-${{ env.CURRENT_VERSION }}
-            quay.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-${{ env.CURRENT_VERSION }}-r${{ env.BUILD_NUMBER }}
-            quay.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-latest
-            ${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && 'quay.io/cruizba/ubuntu-dind:latest' || '' }}
+            ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-${{ env.CURRENT_VERSION }}
+            ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-${{ env.CURRENT_VERSION }}-r${{ env.BUILD_NUMBER }}
+            ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-latest
+            ${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && 'ghcr.io/otter-aerospace/ubuntu-dind:latest' || '' }}
 
-      - name: Build systemd image
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
-        with:
-          push: false
-          load: true
-          file: Dockerfile.systemd
-          platforms: linux/amd64
-          build-args: |
-            UBUNTU_VERSION=${{ matrix.ubuntu_version }}
-          tags: |
-            cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-test
+      # - name: Build systemd image
+      #   uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      #   with:
+      #     push: false
+      #     load: true
+      #     file: Dockerfile.systemd
+      #     platforms: linux/amd64
+      #     build-args: |
+      #       UBUNTU_VERSION=${{ matrix.ubuntu_version }}
+      #     tags: |
+      #       ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-test
 
-      - name: Test systemd image (privileged mode)
-        run: |
-          ./test.sh --mode privileged --use-systemd true --image-name cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-test
+      # - name: Test systemd image (privileged mode)
+      #   run: |
+      #     ./test.sh --mode privileged --use-systemd true --image-name ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-test
 
-      - name: Test systemd image (sysbox-runc mode)
-        run: |
-          ./test.sh --mode sysbox-runc --use-systemd true --image-name cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-test
+      # - name: Test systemd image (sysbox-runc mode)
+      #   run: |
+      #     ./test.sh --mode sysbox-runc --use-systemd true --image-name ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-test
 
-      - name: Build and push systemd image
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
-        with:
-          push: true
-          file: Dockerfile.systemd
-          platforms: linux/amd64,linux/arm64
-          build-args: |
-            UBUNTU_VERSION=${{ matrix.ubuntu_version }}
-          tags: |
-            cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-${{ env.CURRENT_VERSION }}
-            cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-${{ env.CURRENT_VERSION }}-r${{ env.BUILD_NUMBER }}
-            cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-latest
-            ${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && 'cruizba/ubuntu-dind:systemd-latest' || '' }}
-            ghcr.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-${{ env.CURRENT_VERSION }}
-            ghcr.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-${{ env.CURRENT_VERSION }}-r${{ env.BUILD_NUMBER }}
-            ghcr.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-latest
-            ${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && 'ghcr.io/cruizba/ubuntu-dind:systemd-latest' || '' }}
-            quay.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-${{ env.CURRENT_VERSION }}
-            quay.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-${{ env.CURRENT_VERSION }}-r${{ env.BUILD_NUMBER }}
-            quay.io/cruizba/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-latest
-            ${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && 'quay.io/cruizba/ubuntu-dind:systemd-latest' || '' }}
+      # - name: Build and push systemd image
+      #   uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      #   with:
+      #     push: true
+      #     file: Dockerfile.systemd
+      #     platforms: linux/amd64,linux/arm64
+      #     build-args: |
+      #       UBUNTU_VERSION=${{ matrix.ubuntu_version }}
+      #     tags: |
+      #       ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-${{ env.CURRENT_VERSION }}
+      #       ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-${{ env.CURRENT_VERSION }}-r${{ env.BUILD_NUMBER }}
+      #       ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-systemd-latest
+      #       ${{ matrix.ubuntu_version == env.LATEST_UBUNTU_VERSION && 'ghcr.io/otter-aerospace/ubuntu-dind:systemd-latest' || '' }}
