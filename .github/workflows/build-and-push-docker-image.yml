@@ -61,11 +61,11 @@ jobs:
       - name: Test standalone image (privileged mode)
         run: |
           chmod +x test.sh
-          ./test.sh --mode privileged --use-systemd false --image-name ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-test
+          ./test.sh --mode privileged --use-systemd false --image-name otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-test
 
       - name: Test standalone image (sysbox-runc mode)
         run: |
-          ./test.sh --mode sysbox-runc --use-systemd false --image-name ghcr.io/otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-test
+          ./test.sh --mode sysbox-runc --use-systemd false --image-name otter-aerospace/ubuntu-dind:${{ matrix.ubuntu_name }}-test
 
       - name: Build and push standalone image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
