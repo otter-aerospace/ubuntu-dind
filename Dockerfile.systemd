@@ -106,5 +106,17 @@ VOLUME /var/lib/docker
 # Force overlay2 storage driver
 RUN mkdir -p /etc/docker && echo '{"storage-driver":"overlay2"}' > /etc/docker/daemon.json
 
+# Remove the `ubuntu` user and add a user `coder` so that you're not developing as the `root` user
+RUN userdel -r ubuntu && \
+    useradd coder \
+    --create-home \
+    --shell=/bin/bash \
+    --groups=docker \
+    --uid=1000 \
+    --user-group && \
+    echo "coder ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd
+
+USER coder
+
 # Set systemd as entrypoint.
 ENTRYPOINT [ "/sbin/init", "--log-level=err" ]

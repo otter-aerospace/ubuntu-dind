@@ -60,5 +60,17 @@ RUN set -eux; \
     docker-compose version && \
     ln -s /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 
+# Remove the `ubuntu` user and add a user `coder` so that you're not developing as the `root` user
+RUN userdel -r ubuntu && \
+    useradd coder \
+    --create-home \
+    --shell=/bin/bash \
+    --groups=docker \
+    --uid=1000 \
+    --user-group && \
+    echo "coder ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd
+
+USER coder
+
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["bash"]

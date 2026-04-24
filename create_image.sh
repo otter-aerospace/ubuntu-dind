@@ -5,10 +5,8 @@ DOCKER_VERSION="29.4.0"
 BUILD_NUMBER="0"
 LATEST_UBUNTU_VERSION="24.04"
 
-declare -A ubuntu_versions=(
-  ["22.04"]="jammy"
-  ["24.04"]="noble"
-)
+ubuntu_versions=("22.04" "24.04")
+ubuntu_names=("jammy" "noble")
 
 build_image() {
     local ubuntu_version=$1
@@ -18,13 +16,13 @@ build_image() {
 
     docker build \
         --build-arg UBUNTU_VERSION=${ubuntu_version} \
-        -t cruizba/ubuntu-dind:${ubuntu_name}-${DOCKER_VERSION} \
-        -t cruizba/ubuntu-dind:${ubuntu_name}-${DOCKER_VERSION}-r${BUILD_NUMBER} \
-        -t cruizba/ubuntu-dind:${ubuntu_name}-latest \
+        -t otter-aerospace/ubuntu-dind:${ubuntu_name}-${DOCKER_VERSION} \
+        -t otter-aerospace/ubuntu-dind:${ubuntu_name}-${DOCKER_VERSION}-r${BUILD_NUMBER} \
+        -t otter-aerospace/ubuntu-dind:${ubuntu_name}-latest \
         -f Dockerfile .
 
     if [ "${ubuntu_version}" == "${LATEST_UBUNTU_VERSION}" ]; then
-        docker tag cruizba/ubuntu-dind:${ubuntu_name}-latest cruizba/ubuntu-dind:latest
+        docker tag otter-aerospace/ubuntu-dind:${ubuntu_name}-latest otter-aerospace/ubuntu-dind:latest
     fi
 }
 
@@ -36,22 +34,22 @@ build_systemd_image() {
 
     docker build \
         --build-arg UBUNTU_VERSION=${ubuntu_version} \
-        -t cruizba/ubuntu-dind:${ubuntu_name}-systemd-${DOCKER_VERSION} \
-        -t cruizba/ubuntu-dind:${ubuntu_name}-systemd-${DOCKER_VERSION}-r${BUILD_NUMBER} \
-        -t cruizba/ubuntu-dind:${ubuntu_name}-systemd-latest \
+        -t otter-aerospace/ubuntu-dind:${ubuntu_name}-systemd-${DOCKER_VERSION} \
+        -t otter-aerospace/ubuntu-dind:${ubuntu_name}-systemd-${DOCKER_VERSION}-r${BUILD_NUMBER} \
+        -t otter-aerospace/ubuntu-dind:${ubuntu_name}-systemd-latest \
         -f Dockerfile.systemd .
 
     if [ "${ubuntu_version}" == "${LATEST_UBUNTU_VERSION}" ]; then
-        docker tag cruizba/ubuntu-dind:${ubuntu_name}-systemd-latest cruizba/ubuntu-dind:systemd-latest
+        docker tag otter-aerospace/ubuntu-dind:${ubuntu_name}-systemd-latest otter-aerospace/ubuntu-dind:systemd-latest
     fi
 }
 
-for version in "${!ubuntu_versions[@]}"; do
-    build_image "$version" "${ubuntu_versions[$version]}"
+for i in "${!ubuntu_versions[@]}"; do
+    build_image "${ubuntu_versions[$i]}" "${ubuntu_names[$i]}"
 done
 
-for version in "${!ubuntu_versions[@]}"; do
-    build_systemd_image "$version" "${ubuntu_versions[$version]}"
+for i in "${!ubuntu_versions[@]}"; do
+    build_systemd_image "${ubuntu_versions[$i]}" "${ubuntu_names[$i]}"
 done
 
 echo "All images built successfully!"
